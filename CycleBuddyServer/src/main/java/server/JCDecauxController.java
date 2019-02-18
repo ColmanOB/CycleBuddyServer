@@ -1,6 +1,8 @@
 package server;
 
 import java.io.IOException;
+import java.sql.SQLException;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,29 +12,44 @@ import data_models.JCDStation;
 import api_client.JCDClient;
 
 @RestController
-public class JCDecauxController {
+public class JCDecauxController
+{
+    // In dev environment, call the following URL (example)
+    // http://localhost:8090/jcdecaux/station?contractName=Dublin&stationId=2
+    @RequestMapping("/jcdecaux/station")
+    public JCDStation getStation(@RequestParam(value = "contractName") String contractName, @RequestParam(value = "stationId") String id) throws IllegalStateException, IOException
+    {
+        return JCDClient.getStationByID(contractName, id, Application.config.getProperty("APIKey_JCDecaux"));
+    }
+    
+    // In dev environment, call the following URL to get Dublin stations
+    // http://localhost:8090/jcdecaux/stations_in_contract?contractName=Dublin
+    // Currently you need to delete the contents of the jcdecaux_stations DB table, as this currently does a SQL INSERT behind the scenes
+    @RequestMapping("/jcdecaux/stations_in_contract")
+    public JCDStation[] getStationsInContract(@RequestParam(value = "contractName") String contractName) throws IllegalStateException, IOException, SQLException
+    {
 
-	@RequestMapping("/jcdecaux/station")
-	public JCDStation getStation(@RequestParam(value = "contractName") String contractName,
-			@RequestParam(value = "stationId") String id) throws IllegalStateException, IOException {
-		return JCDClient.getStationByID(contractName, id,
-				Application.serverConfiguration.getProperty("APIKey_JCDecaux"));
-	}
+        JCDStation[] stations = JCDClient.getStationListByContract(contractName, Application.config.getProperty("APIKey_JCDecaux"));
 
-	@RequestMapping("/jcdecaux/stations_in_contract")
-	public JCDStation[] getStationsInContract(@RequestParam(value = "contractName") String contractName)
-			throws IllegalStateException, IOException {
-		return JCDClient.getStationListByContract(contractName,
-				Application.serverConfiguration.getProperty("APIKey_JCDecaux"));
-	}
+        DatabaseUpdater dbupdater = new DatabaseUpdater();
+        dbupdater.insertJCDecauxStations(stations);
 
-	@RequestMapping("/jcdecaux/stations_all")
-	public JCDStation[] getStationsAll() throws IllegalStateException, IOException {
-		return JCDClient.getStationListAll(Application.serverConfiguration.getProperty("APIKey_JCDecaux"));
-	}
+        return stations;
+    }
 
-	@RequestMapping("/jcdecaux/contract_list")
-	public JCDContract[] getContracts() throws IllegalStateException, IOException {
-		return JCDClient.getContractList(Application.serverConfiguration.getProperty("APIKey_JCDecaux"));
-	}
+    // In dev environment, call this using the following URL:
+    // http://localhost:8090/jcdecaux/stations_all
+    @RequestMapping("/jcdecaux/stations_all")
+    public JCDStation[] getStationsAll() throws IllegalStateException, IOException
+    {
+        return JCDClient.getStationListAll(Application.config.getProperty("APIKey_JCDecaux"));
+    }
+
+    // In dev environment, call this using the following URL:   
+    // http://localhost:8090/jcdecaux/contract_list
+    @RequestMapping("/jcdecaux/contract_list")
+    public JCDContract[] getContracts() throws IllegalStateException, IOException
+    {
+        return JCDClient.getContractList(Application.config.getProperty("APIKey_JCDecaux"));
+    }
 }

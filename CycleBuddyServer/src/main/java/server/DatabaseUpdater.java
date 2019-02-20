@@ -18,14 +18,23 @@ public class DatabaseUpdater
         return DriverManager.getConnection(url, user, password);
     }
 
-    // Currently tries indiscriminately insert all stations in a specified contract
-    // It falls over if any of the stations are already in the database
-    // It probably should return something useful instead of void, like a count of inserted rows etc.
-    // It will probably be replaced entirely with an 'UPSERT' type statment
+    // This is supposed to work as an 'UPSERT' operation,
+    // i.e. if the record exists, update it
+    // if the record does not exist, insert it
     public void insertJCDecauxStations(JCDStation[] stations) throws SQLException
     {
-        String sql = "INSERT INTO public.jcdecaux_stations (number, name, address, position, banking, bonus, status, contract_name, bike_stands, available_bike_stands, available_bikes, last_update) "
-                + "VALUES (?,?,?,ST_SetSRID(ST_MakePoint(?, ?), 2100),?,?,?,?,?,?,?,?);";
+        String sql = "INSERT INTO public.jcdecaux_stations" 
+                + "(number, name, address, position, banking, bonus, status, contract_name, bike_stands, available_bike_stands, available_bikes, last_update) "
+                + " VALUES (?,?,?,ST_SetSRID(ST_MakePoint(?, ?), 2100),?,?,?,?,?,?,?,?)"
+                + " ON CONFLICT ON CONSTRAINT jcdecaux_stations_pk"
+                + " DO UPDATE"
+                    + " SET banking = EXCLUDED.banking,"
+                    + " bonus = EXCLUDED.bonus,"
+                    + " status = EXCLUDED.status,"
+                    + " bike_stands = EXCLUDED.bike_stands,"
+                    + " available_bike_stands = EXCLUDED.available_bike_stands,"
+                    + " available_bikes = EXCLUDED.available_bikes,"
+                    + " last_update = EXCLUDED.last_update;";
 
         Connection connection = connectToDatabase();
         PreparedStatement ps = connection.prepareStatement(sql);

@@ -30,10 +30,17 @@ public class JCDecauxController
     {
 
         JCDStation[] stations = JCDClient.getStationListByContract(contractName, Application.config.getProperty("APIKey_JCDecaux"));
-
+        try 
+        {
         DatabaseUpdater dbupdater = new DatabaseUpdater();
         dbupdater.insertJCDecauxStations(stations);
-
+        }
+        
+        catch(SQLException e)
+        {
+            System.out.println(e.getMessage());
+        }
+        
         return stations;
     }
 

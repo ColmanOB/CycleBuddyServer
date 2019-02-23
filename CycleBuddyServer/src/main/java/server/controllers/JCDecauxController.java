@@ -27,32 +27,41 @@ public class JCDecauxController
     
     // In dev environment, call the following URL to get Dublin stations
     // http://localhost:8090/jcdecaux/stations_in_contract?contractName=Dublin
-    // Currently you need to delete the contents of the jcdecaux_stations DB table, as this currently does a SQL INSERT behind the scenes
     @RequestMapping("/jcdecaux/stations_in_contract")
-    public JCDStation[] getStationsInContract(@RequestParam(value = "contractName") String contractName) throws IllegalStateException, IOException, SQLException
+    public int getStationsInContract(@RequestParam(value = "contractName") String contractName) throws IllegalStateException, IOException, SQLException
     {
 
         JCDStation[] stations = JCDClient.getStationListByContract(contractName, Application.config.getProperty("APIKey_JCDecaux"));
+        
         try 
         {
-        DatabaseUpdater dbupdater = new DatabaseUpdater();
-        dbupdater.insertJCDecauxStations(stations);
+            DatabaseUpdater dbupdater = new DatabaseUpdater();
+            return dbupdater.insertJCDecauxStations(stations);
         }
         
         catch(SQLException e)
         {
-            System.out.println(e.getMessage());
+            throw e;
         }
-        
-        return stations;
     }
 
     // In dev environment, call this using the following URL:
     // http://localhost:8090/jcdecaux/stations_all
     @RequestMapping("/jcdecaux/stations_all")
-    public JCDStation[] getStationsAll() throws IllegalStateException, IOException
+    public int getStationsAll() throws IllegalStateException, IOException, SQLException
     {
-        return JCDClient.getStationListAll(Application.config.getProperty("APIKey_JCDecaux"));
+        JCDStation[] stations = JCDClient.getStationListAll(Application.config.getProperty("APIKey_JCDecaux"));
+        
+        try 
+        {
+            DatabaseUpdater dbupdater = new DatabaseUpdater();
+            return dbupdater.insertJCDecauxStations(stations);
+        }
+        
+        catch(SQLException e)
+        {
+            throw e;
+        }
     }
 
     // In dev environment, call this using the following URL:   

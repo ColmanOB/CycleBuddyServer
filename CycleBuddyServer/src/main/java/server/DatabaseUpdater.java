@@ -18,12 +18,17 @@ public class DatabaseUpdater
     {
         return DriverManager.getConnection(url, user, password);
     }
-
-    // This is supposed to work as an 'UPSERT' operation,
-    // i.e. if the record exists, update it
-    // if the record does not exist, insert it
-    // This probably needs a better method name
-    public void insertJCDecauxStations(JCDStation[] stations) throws SQLException
+    
+    /**
+     * Updates the record in the database for each JC Decaux station passed in.
+     * 
+     * If a matching record does not exist for any individual station, one will be inserted.
+     * 
+     * @param stations An array of JCDStation objects
+     * @return A count of the rows updated 
+     * @throws SQLException In the event of a database access error
+     */
+    public int insertJCDecauxStations(JCDStation[] stations) throws SQLException
     {
         String sql = "INSERT INTO public.jcdecaux_stations" 
                 + "(number, name, address, position, banking, bonus, status, contract_name, bike_stands, available_bike_stands, available_bikes, last_update) "
@@ -38,31 +43,52 @@ public class DatabaseUpdater
                     + " available_bikes = EXCLUDED.available_bikes,"
                     + " last_update = EXCLUDED.last_update;";
 
-        Connection connection = connectToDatabase();
-        PreparedStatement ps = connection.prepareStatement(sql);
-
-        for (JCDStation station : stations)
+        Connection dbConnection = connectToDatabase();
+        dbConnection.setAutoCommit(false);
+        PreparedStatement ps = dbConnection.prepareStatement(sql);
+        
+        try
         {
-            ps.setInt(1, station.number);
-            ps.setString(2, station.name);
-            ps.setString(3, station.address);
-            ps.setDouble(4, station.position.lng);
-            ps.setDouble(5, station.position.lat);
-            ps.setBoolean(6, station.banking);
-            ps.setBoolean(7, station.bonus);
-            ps.setString(8, station.status);
-            ps.setString(9, station.contract_name);
-            ps.setInt(10, station.bike_stands);
-            ps.setInt(11, station.available_bike_stands);
-            ps.setInt(12, station.available_bikes);
-            ps.setString(13, station.last_update);
-
-            ps.addBatch();
+            for (JCDStation station : stations)
+            {
+                ps.setInt(1, station.number);
+                ps.setString(2, station.name);
+                ps.setString(3, station.address);
+                ps.setDouble(4, station.position.lng);
+                ps.setDouble(5, station.position.lat);
+                ps.setBoolean(6, station.banking);
+                ps.setBoolean(7, station.bonus);
+                ps.setString(8, station.status);
+                ps.setString(9, station.contract_name);
+                ps.setInt(10, station.bike_stands);
+                ps.setInt(11, station.available_bike_stands);
+                ps.setInt(12, station.available_bikes);
+                ps.setString(13, station.last_update);
+    
+                ps.addBatch();
+            }
+        // Commit the batch, and return a count of affected rows    
+        int rowCount = ps.executeBatch().length;
+        dbConnection.commit();
+        return rowCount;
         }
-        ps.executeBatch();
+        
+        catch (Exception e)
+        {
+            dbConnection.rollback();
+            throw e;
+        }
+        
+        finally 
+        {
+            if (dbConnection != null) 
+            {
+                dbConnection.close();
+            }
+        }
     }
     
-    public void insertAnRotharNuaStations(ARNScheme.Data[] stations) throws SQLException
+    public int[] insertAnRotharNuaStations(ARNScheme.Data[] stations) throws SQLException
     {
         String sql = "INSERT INTO public.an_rothar_nua_stations" 
                 + "(scheme_id, scheme_short_name, station_id, name, name_irish, docks_count, bikes_available, docks_available, status, position, date_status) "
@@ -95,6 +121,6 @@ public class DatabaseUpdater
 
             ps.addBatch();
         }
-        ps.executeBatch();
+        return ps.executeBatch();
     }
 }

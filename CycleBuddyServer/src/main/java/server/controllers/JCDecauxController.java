@@ -1,4 +1,4 @@
-package server;
+package server.controllers;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import data_models.JCDContract;
 import data_models.JCDStation;
+import server.Application;
+import server.DatabaseUpdater;
 import api_client.JCDClient;
 
 @RestController
@@ -16,8 +18,9 @@ public class JCDecauxController
 {
     // In dev environment, call the following URL (example)
     // http://localhost:8090/jcdecaux/station?contractName=Dublin&stationId=2
+    // Needs to be refactored to query database instead of making an API call
     @RequestMapping("/jcdecaux/station")
-    public JCDStation getStation(@RequestParam(value = "contractName") String contractName, @RequestParam(value = "stationId") String id) throws IllegalStateException, IOException
+    public JCDStation getStation(@RequestParam(value = "contractName") String contractName, @RequestParam(value = "stationId") int id) throws IllegalStateException, IOException
     {
         return JCDClient.getStationByID(contractName, id, Application.config.getProperty("APIKey_JCDecaux"));
     }

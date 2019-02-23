@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import data_models.ARNScheme;
 import data_models.JCDStation;
 
 public class DatabaseUpdater
@@ -21,6 +22,7 @@ public class DatabaseUpdater
     // This is supposed to work as an 'UPSERT' operation,
     // i.e. if the record exists, update it
     // if the record does not exist, insert it
+    // This probably needs a better method name
     public void insertJCDecauxStations(JCDStation[] stations) throws SQLException
     {
         String sql = "INSERT INTO public.jcdecaux_stations" 
@@ -54,6 +56,42 @@ public class DatabaseUpdater
             ps.setInt(11, station.available_bike_stands);
             ps.setInt(12, station.available_bikes);
             ps.setString(13, station.last_update);
+
+            ps.addBatch();
+        }
+        ps.executeBatch();
+    }
+    
+    public void insertAnRotharNuaStations(ARNScheme.Data[] stations) throws SQLException
+    {
+        String sql = "INSERT INTO public.an_rothar_nua_stations" 
+                + "(scheme_id, scheme_short_name, station_id, name, name_irish, docks_count, bikes_available, docks_available, status, position, date_status) "
+                + " VALUES (?,?,?,?,?,?,?,?,?,ST_SetSRID(ST_MakePoint(?, ?), 2100),?)"
+                + " ON CONFLICT ON CONSTRAINT an_rothar_nua_stations_pk"
+                + " DO UPDATE"
+                    + " SET docks_count = EXCLUDED.docks_count,"
+                    + " bikes_available = EXCLUDED.bikes_available,"
+                    + " docks_available = EXCLUDED.docks_available,"
+                    + " status = EXCLUDED.status,"
+                    + " date_status = EXCLUDED.date_status;";
+
+        Connection connection = connectToDatabase();
+        PreparedStatement ps = connection.prepareStatement(sql);
+
+        for (ARNScheme.Data station : stations)
+        {
+            ps.setInt(1, station.schemeId);
+            ps.setString(2, station.schemeShortName);
+            ps.setInt(3, station.stationId);
+            ps.setString(4, station.name);
+            ps.setString(5, station.nameIrish);
+            ps.setInt(6, station.docksCount);
+            ps.setInt(7, station.bikesAvailable);
+            ps.setInt(8, station.docksAvailable);
+            ps.setInt(9, station.status);
+            ps.setDouble(11, station.latitude);
+            ps.setDouble(10, station.longitude);
+            ps.setString(12, station.dateStatus);
 
             ps.addBatch();
         }

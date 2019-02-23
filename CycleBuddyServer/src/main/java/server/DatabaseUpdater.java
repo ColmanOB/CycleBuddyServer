@@ -28,7 +28,7 @@ public class DatabaseUpdater
      * @return A count of the rows updated 
      * @throws SQLException In the event of a database access error
      */
-    public int insertJCDecauxStations(JCDStation[] stations) throws SQLException
+    public int updateJCDecauxStations(JCDStation[] stations) throws SQLException
     {
         String sql = "INSERT INTO public.jcdecaux_stations" 
                 + "(number, name, address, position, banking, bonus, status, contract_name, bike_stands, available_bike_stands, available_bikes, last_update) "
@@ -88,7 +88,7 @@ public class DatabaseUpdater
         }
     }
     
-    public int[] insertAnRotharNuaStations(ARNScheme.Data[] stations) throws SQLException
+    public int insertAnRotharNuaStations(ARNScheme.Data[] stations) throws SQLException
     {
         String sql = "INSERT INTO public.an_rothar_nua_stations" 
                 + "(scheme_id, scheme_short_name, station_id, name, name_irish, docks_count, bikes_available, docks_available, status, position, date_status) "
@@ -101,26 +101,48 @@ public class DatabaseUpdater
                     + " status = EXCLUDED.status,"
                     + " date_status = EXCLUDED.date_status;";
 
-        Connection connection = connectToDatabase();
-        PreparedStatement ps = connection.prepareStatement(sql);
+        Connection dbConnection = connectToDatabase();
+        dbConnection.setAutoCommit(false);
+        PreparedStatement ps = dbConnection.prepareStatement(sql);
 
-        for (ARNScheme.Data station : stations)
+        try
         {
-            ps.setInt(1, station.schemeId);
-            ps.setString(2, station.schemeShortName);
-            ps.setInt(3, station.stationId);
-            ps.setString(4, station.name);
-            ps.setString(5, station.nameIrish);
-            ps.setInt(6, station.docksCount);
-            ps.setInt(7, station.bikesAvailable);
-            ps.setInt(8, station.docksAvailable);
-            ps.setInt(9, station.status);
-            ps.setDouble(11, station.latitude);
-            ps.setDouble(10, station.longitude);
-            ps.setString(12, station.dateStatus);
-
-            ps.addBatch();
+            for (ARNScheme.Data station : stations)
+            {
+                ps.setInt(1, station.schemeId);
+                ps.setString(2, station.schemeShortName);
+                ps.setInt(3, station.stationId);
+                ps.setString(4, station.name);
+                ps.setString(5, station.nameIrish);
+                ps.setInt(6, station.docksCount);
+                ps.setInt(7, station.bikesAvailable);
+                ps.setInt(8, station.docksAvailable);
+                ps.setInt(9, station.status);
+                ps.setDouble(11, station.latitude);
+                ps.setDouble(10, station.longitude);
+                ps.setString(12, station.dateStatus);
+    
+                ps.addBatch();
+            }
+            //return ps.executeBatch();
+            // Commit the batch, and return a count of affected rows    
+            int rowCount = ps.executeBatch().length;
+            dbConnection.commit();
+            return rowCount;
         }
-        return ps.executeBatch();
+        
+        catch (Exception e)
+        {
+            dbConnection.rollback();
+            throw e;
+        }
+        
+        finally 
+        {
+            if (dbConnection != null) 
+            {
+                dbConnection.close();
+            }
+        }
     }
 }

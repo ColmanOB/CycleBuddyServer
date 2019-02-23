@@ -36,7 +36,7 @@ public class JCDecauxController
         try 
         {
             DatabaseUpdater dbupdater = new DatabaseUpdater();
-            return dbupdater.insertJCDecauxStations(stations);
+            return dbupdater.updateJCDecauxStations(stations);
         }
         
         catch(SQLException e)
@@ -55,7 +55,7 @@ public class JCDecauxController
         try 
         {
             DatabaseUpdater dbupdater = new DatabaseUpdater();
-            return dbupdater.insertJCDecauxStations(stations);
+            return dbupdater.updateJCDecauxStations(stations);
         }
         
         catch(SQLException e)

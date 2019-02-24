@@ -32,7 +32,7 @@ public class DatabaseUpdater
     {
         String sql = "INSERT INTO public.jcdecaux_stations" 
                 + "(number, name, address, position, banking, bonus, status, contract_name, bike_stands, available_bike_stands, available_bikes, last_update) "
-                + " VALUES (?,?,?,ST_SetSRID(ST_MakePoint(?, ?), 2100),?,?,?,?,?,?,?,?)"
+                + " VALUES (?,?,?,ST_SetSRID(ST_MakePoint(?, ?), 2100),?,?,?,?,?,?,?,to_timestamp(?))"
                 + " ON CONFLICT ON CONSTRAINT jcdecaux_stations_pk"
                 + " DO UPDATE"
                     + " SET banking = EXCLUDED.banking,"
@@ -63,7 +63,7 @@ public class DatabaseUpdater
                 ps.setInt(10, station.bike_stands);
                 ps.setInt(11, station.available_bike_stands);
                 ps.setInt(12, station.available_bikes);
-                ps.setString(13, station.last_update);
+                ps.setDouble(13, (station.last_update / 1000));
     
                 ps.addBatch();
             }
@@ -92,7 +92,7 @@ public class DatabaseUpdater
     {
         String sql = "INSERT INTO public.an_rothar_nua_stations" 
                 + "(scheme_id, scheme_short_name, station_id, name, name_irish, docks_count, bikes_available, docks_available, status, position, date_status) "
-                + " VALUES (?,?,?,?,?,?,?,?,?,ST_SetSRID(ST_MakePoint(?, ?), 2100),?)"
+                + " VALUES (?,?,?,?,?,?,?,?,?,ST_SetSRID(ST_MakePoint(?, ?), 2100),to_timestamp(?, 'DD/MM/YYYY HH24:MI:SS'))"
                 + " ON CONFLICT ON CONSTRAINT an_rothar_nua_stations_pk"
                 + " DO UPDATE"
                     + " SET docks_count = EXCLUDED.docks_count,"

@@ -1,5 +1,7 @@
 package data_models;
 
+import java.sql.Date;
+import java.sql.Timestamp;
 
 /**
  * A wrapper class used to represent a 'scheme' operated by An Rothar Nua.

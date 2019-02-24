@@ -1,5 +1,7 @@
 package data_models;
 
+import java.sql.Timestamp;
+
 /**
  * A wrapper for the JSON returned from the JCDecaux API for a single bike station.
  * 
@@ -55,7 +57,7 @@ public class JCDStation {
 	/**
 	 * The time that the data was last refreshed for the bike station.
 	 */
-	public String last_update;
+	public double last_update;
 
 	/**
 	 * A set of geographic latitude and longitude coordinates.

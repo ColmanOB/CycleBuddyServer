@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class NBCity {
 	
-	public List<Country> countries;
+	public Country[] countries;
 
 	public class Country {
 		@SerializedName("lat")
@@ -87,7 +87,7 @@ public class NBCity {
 		public String pricing;
 		@SerializedName("cities")
 		@Expose
-		public List<City> cities = null;
+		public City[] cities = null;
 
 		public class City {
 			@SerializedName("uid")
@@ -134,7 +134,7 @@ public class NBCity {
 			public int availableBikes;
 			@SerializedName("places")
 			@Expose
-			public List<Place> places = null;
+			public Place[] places = null;
 
 			public class Bounds {
 				@SerializedName("south_west")
@@ -184,7 +184,7 @@ public class NBCity {
 				public String name;
 				@SerializedName("address")
 				@Expose
-				public Object address;
+				public String address;
 				@SerializedName("spot")
 				@Expose
 				public boolean spot;
@@ -208,7 +208,7 @@ public class NBCity {
 				public String terminalType;
 				@SerializedName("bike_list")
 				@Expose
-				public List<BikeList> bikeList = null;
+				public BikeList[] bikeList;
 				@SerializedName("bike_numbers")
 				@Expose
 				public transient List<String> bikeNumbers = null;
@@ -217,7 +217,7 @@ public class NBCity {
 				public transient BikeTypes bikeTypes;
 				@SerializedName("place_type")
 				@Expose
-				public String placeType;
+				public int placeType;
 				@SerializedName("rack_locks")
 				@Expose
 				public boolean rackLocks;

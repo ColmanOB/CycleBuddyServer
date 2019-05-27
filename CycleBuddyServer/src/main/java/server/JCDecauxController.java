@@ -1,4 +1,4 @@
-package server.controllers;
+package server;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import data_models.JCDContract;
 import data_models.JCDStation;
-import server.Application;
-import server.DatabaseUpdater;
 import api_client.JCDClient;
 
 @RestController

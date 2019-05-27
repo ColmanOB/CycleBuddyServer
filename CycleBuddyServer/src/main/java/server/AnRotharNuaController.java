@@ -1,4 +1,4 @@
-package server.controllers;
+package server;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import data_models.ARNScheme;
-import server.Application;
-import server.DatabaseUpdater;
 import api_client.ARNClient;
 
 @RestController
@@ -34,7 +32,7 @@ public class AnRotharNuaController
         try 
         {
         DatabaseUpdater dbupdater = new DatabaseUpdater();
-        return dbupdater.insertAnRotharNuaStations(response.data);
+        return dbupdater.updateAnRotharNuaStations(response.data);
         }
         
         catch(SQLException e)

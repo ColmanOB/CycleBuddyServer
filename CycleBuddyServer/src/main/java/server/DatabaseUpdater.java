@@ -7,6 +7,7 @@ import java.sql.SQLException;
 
 import data_models.ARNScheme;
 import data_models.JCDStation;
+import data_models.NBCity;
 
 public class DatabaseUpdater
 {
@@ -67,6 +68,7 @@ public class DatabaseUpdater
     
                 ps.addBatch();
             }
+            
         // Commit the batch, and return a count of affected rows    
         int rowCount = ps.executeBatch().length;
         dbConnection.commit();
@@ -88,8 +90,19 @@ public class DatabaseUpdater
         }
     }
     
-    public int insertAnRotharNuaStations(ARNScheme.Data[] stations) throws SQLException
+    /**
+     * Updates the record in the database for each An Rothar Nua station passed in.
+     * 
+     * If a matching record does not exist for any individual station, one will be inserted.
+     * 
+     * @param stations the contents of the Data array in a response from the An Rothar Nua API
+     * @return the count of rows affected
+     * @throws SQLException in the event of a database access error
+     */
+    public int updateAnRotharNuaStations(ARNScheme.Data[] stations) throws SQLException
     {
+        // Prepare the SQL, including converting the latitude and longitude into a 'point'
+        // and converting the date/time retrieved from the An Rothar Nua API into a PostgreSQL timestamp
         String sql = "INSERT INTO public.an_rothar_nua_stations" 
                 + "(scheme_id, scheme_short_name, station_id, name, name_irish, docks_count, bikes_available, docks_available, status, position, date_status) "
                 + " VALUES (?,?,?,?,?,?,?,?,?,ST_SetSRID(ST_MakePoint(?, ?), 2100),to_timestamp(?, 'DD/MM/YYYY HH24:MI:SS'))"
@@ -101,10 +114,13 @@ public class DatabaseUpdater
                     + " status = EXCLUDED.status,"
                     + " date_status = EXCLUDED.date_status;";
 
+        // We run the updates as a batch, so either all updates succeed, or we roll back
         Connection dbConnection = connectToDatabase();
         dbConnection.setAutoCommit(false);
         PreparedStatement ps = dbConnection.prepareStatement(sql);
 
+        // Use the values retrieved from the An Rothar Nua API 
+        // to populate the SQL insert with the data for each individual station
         try
         {
             for (ARNScheme.Data station : stations)
@@ -121,14 +137,88 @@ public class DatabaseUpdater
                 ps.setDouble(11, station.latitude);
                 ps.setDouble(10, station.longitude);
                 ps.setString(12, station.dateStatus);
-    
+                
                 ps.addBatch();
             }
-            //return ps.executeBatch();
-            // Commit the batch, and return a count of affected rows    
+            // If no exception was encountered, commit the batch 
+            // and return a count of affected rows    
             int rowCount = ps.executeBatch().length;
             dbConnection.commit();
             return rowCount;
+        }
+        
+        catch (Exception e)
+        {
+            // If anything went wrong, undo the whole batch
+            dbConnection.rollback();
+            throw e;
+        }
+        
+        finally 
+        {
+            if (dbConnection != null) 
+            {
+                dbConnection.close();
+            }
+        }
+    }
+    
+    /**
+     * Updates the record in the database for each NextBike station passed in.
+     * 
+     * If a matching record does not exist for any individual station, one will be inserted.
+     * 
+     * @param stations An array of JCDStation objects
+     * @return A count of the rows updated 
+     * @throws SQLException In the event of a database access error
+     */
+    public int updateNextBikeStations(NBCity.Country.City.Place[] stations) throws SQLException
+    {
+        String sql = "INSERT INTO public.next_bike_stations" 
+                + "(uid, position, name, address, spot, number, bikes, bike_racks, free_racks, maintenance, terminal_type, place_type, rack_locks) "
+                + " VALUES (?, ST_SetSRID(ST_MakePoint(?, ?),?,?,?,?,?,?,?,?,?,?,?)"
+                + " ON CONFLICT ON CONSTRAINT next_bike_stations_pk"
+                + " DO UPDATE"
+                    + " SET bikes = EXCLUDED.bikes,"
+                    + " bike_racks = EXCLUDED.bike_racks,"
+                    + " free_racks = EXCLUDED.free_racks,"
+                    + " maintenance = EXCLUDED.maintenance,"
+                    + " terminal_type = EXCLUDED.terminal_type,"
+                    + " place_type = EXCLUDED.place_type,"
+                    + " rack_locks = EXCLUDED.rack_locks;";
+
+        Connection dbConnection = connectToDatabase();
+        dbConnection.setAutoCommit(false);
+        PreparedStatement ps = dbConnection.prepareStatement(sql);
+        
+        try
+        {
+            for (NBCity.Country.City.Place station : stations) /* (int i = 0; i < stations.length; i++) */
+            {
+                ps.setInt(1, station.uid);
+                ps.setDouble(2, station.lng);
+                ps.setDouble(3, station.lat);
+                ps.setString(4, station.name);
+                ps.setString(5, station.address);
+                ps.setBoolean(6, station.spot);
+                ps.setInt(7, station.number);
+                ps.setInt(8, station.bikes);
+                ps.setInt(9, station.bikeRacks);
+                ps.setInt(10, station.freeRacks);
+                ps.setBoolean(11, station.maintenance);
+                ps.setString(12, station.terminalType);
+                ps.setInt(13, station.placeType);
+                ps.setBoolean(14, station.rackLocks);
+                    
+                ps.addBatch();
+            }
+            
+            System.out.println(ps.toString());
+            
+        // Commit the batch, and return a count of affected rows    
+        int rowCount = ps.executeBatch().length;
+        dbConnection.commit();
+        return rowCount;
         }
         
         catch (Exception e)

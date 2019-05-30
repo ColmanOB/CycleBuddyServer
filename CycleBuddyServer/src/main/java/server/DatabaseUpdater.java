@@ -140,8 +140,8 @@ public class DatabaseUpdater
                 
                 ps.addBatch();
             }
-            // If no exception was encountered, commit the batch 
-            // and return a count of affected rows    
+            
+            // If no exception was encountered, commit the batch and return a count of affected rows    
             int rowCount = ps.executeBatch().length;
             dbConnection.commit();
             return rowCount;
@@ -168,7 +168,7 @@ public class DatabaseUpdater
      * 
      * If a matching record does not exist for any individual station, one will be inserted.
      * 
-     * @param stations An array of JCDStation objects
+     * @param stations An array of NBCity.Country.City.Place objects
      * @return A count of the rows updated 
      * @throws SQLException In the event of a database access error
      */
@@ -193,30 +193,30 @@ public class DatabaseUpdater
         
         try
         {
-            for /*(NBCity.Country.City.Place station : stations) */ (int i = 0; i < stations.length; i++)
-            {
-                ps.setInt(1, stations[i].uid);
-                ps.setDouble(2, stations[i].lng);
-                ps.setDouble(3, stations[i].lat);
-                ps.setString(4, stations[i].name);
-                ps.setString(5, stations[i].address);
-                ps.setBoolean(6, stations[i].spot);
-                ps.setInt(7, stations[i].number);
-                ps.setInt(8, stations[i].bikes);
-                ps.setInt(9, stations[i].bikeRacks);
-                ps.setInt(10, stations[i].freeRacks);
-                ps.setBoolean(11, stations[i].maintenance);
-                ps.setString(12, stations[i].terminalType);
-                ps.setInt(13, stations[i].placeType);
-                ps.setBoolean(14, stations[i].rackLocks);
+            for (NBCity.Country.City.Place station : stations)
+            {                
+                ps.setInt(1, station.uid);
+                ps.setDouble(2, station.lng);
+                ps.setDouble(3, station.lat);
+                ps.setString(4, station.name);
+                ps.setString(5, station.address);
+                ps.setBoolean(6, station.spot);
+                ps.setInt(7, station.number);
+                ps.setInt(8, station.bikes);
+                ps.setInt(9, station.bikeRacks);
+                ps.setInt(10, station.freeRacks);
+                ps.setBoolean(11, station.maintenance);
+                ps.setString(12, station.terminalType);
+                ps.setInt(13, station.placeType);
+                ps.setBoolean(14, station.rackLocks);
                     
                 ps.addBatch();
             }
     
-        // Commit the batch, and return a count of affected rows    
-        int rowCount = ps.executeBatch().length;
-        dbConnection.commit();
-        return rowCount;
+            // Commit the batch, and return a count of affected rows    
+            int rowCount = ps.executeBatch().length;
+            dbConnection.commit();
+            return rowCount;
         }
         
         catch (Exception e)

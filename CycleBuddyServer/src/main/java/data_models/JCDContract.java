@@ -7,7 +7,8 @@ package data_models;
  * @since 2017-12-07
  *
  */
-public class JCDContract {
+public class JCDContract 
+{
 	/**
 	 * The name of the contract, typically a city / urban area.
 	 */

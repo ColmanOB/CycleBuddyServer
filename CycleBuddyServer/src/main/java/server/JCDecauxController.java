@@ -16,7 +16,6 @@ public class JCDecauxController
 {
     // In dev environment, call the following URL (example)
     // http://localhost:8090/jcdecaux/station?contractName=Dublin&stationId=2
-    // Needs to be refactored to query database instead of making an API call
     @RequestMapping("/jcdecaux/station")
     public JCDStation getStation(@RequestParam(value = "contractName") String contractName, @RequestParam(value = "stationId") int id) throws IllegalStateException, IOException
     {

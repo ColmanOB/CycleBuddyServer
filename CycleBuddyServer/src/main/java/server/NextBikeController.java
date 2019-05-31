@@ -18,7 +18,6 @@ public class NextBikeController
     @RequestMapping("/nextbike/stations")
     public int getStations(@RequestParam(value = "city_id") int cityId) throws IllegalStateException, IOException, SQLException
     {
-      //  return NBClient.getCityByID(cityId);
         NBCity response = NBClient.getCityByID(cityId);
         
         // Try to insert the retrieved data into the database
